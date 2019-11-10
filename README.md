@@ -41,7 +41,7 @@ gpg/card> help
 
 ### Additional requirements
 Before we configure our Mac to work with SSH we'll first focus on generating our keys. Depending on your level of paranoia :scream: you can choose to generate these keys on a separate machine or on the Mac itself.
-I use a separate virtual machine, which I can throw away after using it, on my hypervisor at home. After the keys are generated and transmitted to our Yubikey, I'll erase the data and the machine itself.
+I use a separate virtual machine, which I can throw away after using it, on my hypervisor at home. After the keys are generated and transmitted to my Yubikey, I'll erase the data and the machine itself.
 
 Some guidelines on how to erase such data can be found in [NIST SP 800-88](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-88r1.pdf). You might think I'm a bit paranoid but as a security professional, I like to familiarize myself with all sorts of security techniques. So while it might not be needed for you or even myself. I like to know how it works. :sunglasses:
 
