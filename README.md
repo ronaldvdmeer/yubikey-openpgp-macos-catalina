@@ -212,15 +212,13 @@ However, if for some reason something went wrong with the stubs its good to have
 
 ## Publish your public key
 
-These days privacy has become very important. Much more if we compare it to 1997 when GnuPG (gpg) was introduced. Back in the days, and even now, there are public keyservers to which you can send your public key. However, there are some privacy concerns with these public keyservers and some nasty ways to attack them :thinking:. **Yakamo K** wrote a good blogpost about this which can be found (here)[https://medium.com/@mdrahony/are-sks-keyservers-safe-do-we-need-them-7056b495101c].
+These days privacy has become very important. Much more if we compare it to 1997 when GnuPG (gpg) was introduced. Back in the days, and even now, there are public keyservers to which you can send your public key. However, there are some privacy concerns with these public keyservers and some nasty ways to attack them :thinking:. **Yakamo K** wrote a good blogpost about this which can be found [here](https://medium.com/@mdrahony/are-sks-keyservers-safe-do-we-need-them-7056b495101c).
 
-In recent years an alternative was developed named (keybase.io)[https://keybase.io). On this platform, you can publish your public key without publishing your personal email address and without losing control over your personal information. Because of this, I advise you to use keybase.io. You can even find me on there by clicking (here)[https://keybase.io/ronaldvdmeer].
+In recent years an alternative was developed named [keybase.io](https://keybase.io). On this platform, you can publish your public key without publishing your personal email address and without losing control over your personal information. Because of this, I advise you to use keybase.io. You can even find me on there by clicking [here](https://keybase.io/ronaldvdmeer).
 
 ## Define the location of your public key on the Yubikey
 
-Although it's optional you can specify the location of your public key on the smartcard by doing the following. 
-
-To configure the URL on your Yubikey do the following:
+Although it's optional you can specify the location of your public key on the Yubicard by doing the following. 
 
 ```zsh
 > gpg --edit-card
