@@ -75,7 +75,9 @@ The outcome of the aforementioned steps should look something like this.
 
 For the next step, we'll open `gpg` once more.
 
-`% gpg --expert --edit-key <keyID>`
+```zsh
+% gpg --expert --edit-key <keyID>`
+```
 
 You can now add other UID's by typing in `adduid`. Make sure at the end you'll switch back to the primary key by using the following:
 
@@ -208,7 +210,80 @@ However, if for some reason something went wrong with the stubs its good to have
 
 **Congratulations!** :tada:, your keys are stored on your Yubikey!
 
-## macOS Configuration
+## Publish your public key
+
+These days privacy has become very important. Much more if we compare it to 1997 when GnuPG (gpg) was introduced. Back in the days, and even now, there are public keyservers to which you can send your public key. However, there are some privacy concerns with these public keyservers and some nasty ways to attack them :thinking:. **Yakamo K** wrote a good blogpost about this which can be found (here)[https://medium.com/@mdrahony/are-sks-keyservers-safe-do-we-need-them-7056b495101c].
+
+In recent years an alternative was developed named (keybase.io)[https://keybase.io). On this platform, you can publish your public key without publishing your personal email address and without losing control over your personal information. Because of this, I advise you to use keybase.io. You can even find me on there by clicking (here)[https://keybase.io/ronaldvdmeer].
+
+## Define the location of your public key on the Yubikey
+
+Although it's optional you can specify the location of your public key on the smartcard by doing the following. 
+
+To configure the URL on your Yubikey do the following:
+
+```zsh
+> gpg --edit-card
+```
+  * Type `admin` 
+  * Type `url`
+  * Enter the location of your public key
+  * Enter your Admin PIN
+
+You can now quit `gpg` once more and use the `fetch` command (see 'Fetch the public key') to import them on other machines.
+
+## Using the Yubikey (and your key) on a Windows machine
+
+I often get asked how to use the Yubikey on another machine. Luckily for us, that's not very difficult. 
+
+### Requirements
+
+The steps I'm about to explain are tested on a machine with Microsoft Windows 10 (10.0.17763 Build 17763) installed.
+On top of this, you'll also need `gpg` (gpg4win) which can be downloaded by visiting the GnuPG website or by clicking on [this](https://gpg4win.org/download.html) link.
+In my experience, you'll also need to install the [Yubico smartcard minidriver](https://www.yubico.com/products/services-software/download/smart-card-drivers-tools/).
+
+After both `gpg4win` and the `mini drivers` are installed you can open the program Kleopatra. This comes with the `gpg4win` installation package. 
+This program provides you with a GUI which might give you a better understanding of what is going on.
+
+From the Windows command line (`cmd`) perform the following command:
+
+```zsh
+> gpg --edit-card
+```
+
+### Fetch the public key
+
+Now, we first need to get ourselves the public key and let `gpg` create the stubs. To get the public key you can manually import it but I prefer to use the `fetch` command.
+This command looks at the URL parameter we defined earlier on the Yubikey and downloads your public key. 
+
+```zsh
+gpg> fetch
+gpg: requesting key from 'https://keybase.io/<YOURKEYBASID>pgp_keys.asc'
+gpg: key XXXXXXXXXX: public key "<YOUR NAME> <XXX@XXX.com>" imported
+gpg: Total number processed: 1
+gpg:               imported: 1
+```
+
+If this is done correctly and you had Kleopatra open at the same time, you should now see the key in your keyring.
+
+### Set the trust level
+
+Now we should set the trust level once more to ultimate. 
+
+```zsh
+% gpg --expert --edit-key <keyID>`
+gpg> trust
+```
+  * Select option `5` (I trust ultimately)
+
+```zsh
+gpg> save
+```
+
+You can use your keys on a Windows machine.
+
+## macOS Configuration for SSH usage
+
 Now that your keys are stored on the Yubikey its time to link `gpg-agent` and `ssh-agent`.
 Create the files below and if needed adjust the path to `pinentry` if this differce on your machine.
 
@@ -251,8 +326,6 @@ However, if it all works you can now start with copying your public key to serve
 ```
 
 If you encounter trouble check your server to see if the `sshd` configuration accepts public/private key authentication.
-
-Have fun!
 
 ## One more thing
 The signing of every [commit](https://github.com/RvMp/yubikey-ssh-macos-catalina/commits/master) is done with the Yubikey as well.
