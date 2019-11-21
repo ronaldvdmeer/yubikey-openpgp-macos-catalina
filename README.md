@@ -4,7 +4,7 @@
 
 I'm writing this tutorial because there is little information about how to configure a [Yubikey](https://www.yubico.com/products/yubikey-hardware/) on [macOS Catalina](https://www.apple.com/nl/macos/catalina/), generate the keys securely and make it work with your `ssh` client. 
 
-This tutorial is tested on macOS Catalina version 10.15 with a Yubikey 4, [GnuPG 2.2.17](https://gnupg.org/) and [pinetry 1.1.0](https://gnupg.org/related_software/pinentry/index.html). GnuPG2 and Pinetry are installed using the [homebrew](https://brew.sh/) repository. To be able to follow this tutorial I expect the reader to have some knowledge about IT security, Linux and macOS. 
+This tutorial is tested on macOS Catalina version 10.15 with a Yubikey **4** and **5 (NFC)**, [GnuPG 2.2.17](https://gnupg.org/) and [pinetry 1.1.0](https://gnupg.org/related_software/pinentry/index.html). GnuPG2 and Pinetry are installed using the [homebrew](https://brew.sh/) repository. To be able to follow this tutorial I expect the reader to have some knowledge about IT security, Linux and macOS. 
 
 ## Requirements
 Because we want this to work on our apple machine let's start with installing homebrew. This will give us access to the programs we need. 
@@ -21,17 +21,51 @@ Now that homebrew is installed let's use it to install gnupg2 and pinetry.
 
 ## PIN Codes
 The most important thing to start with is configuring your PIN, Admin PIN, and the PUK code.
+To do this you must enable admin-mode within `gpg`. See the instructions below on how to enable admin-mode.
 
 ```zsh
 % gpg --card-edit
+gpg/card> admin
+Admin commands are allowed
+```
+
+Now that we have the correct permissions enter `passwd` to change the PIN, Admin PIN, and the PUK.
+
+```zsh
 gpg/card> passwd
 ```
 
-The default PIN on the Yubikey is :one::two::three::four::five::six: and the default Admin PIN is :one::two::three::four::five::six::seven::eight:. After setting both the PIN and Admin PIN set a Reset Code (PUK).
+We are now in the PIN-setup menu. We will start by changing the PIN. 
+
+  * Select option `1` (change PIN).
+  * Enter the default PIN code (default: :one::two::three::four::five::six:)
+  * Enter your new PIN code.
+  * Repeat new PIN code.
+  * Check if the PIN actually changes. It should display: `PIN changed`.
+
+Your PIN is now set. Now we need to set the Admin PIN as well.
+
+  * Select option `3` (change Admin PIN).
+  * Enter the default Admin PIN code (default: :one::two::three::four::five::six::seven::eight:).
+  * Enter your new Admin PIN code.
+  * Repeat new Admin PIN code.
+  * Check if the PIN actually changes. It should display: `PIN changed`.
+
+Now that we set both the PIN and the Admin PIN we should set the PUK code as well. 
+
+  * Select option `4` (set the Reset Code).
+  * Enter the Admin PIN code (which you've just configured).
+  * Enter your new PUK code.
+  * Repeat new PUK code.
+  * Check if the PUK changed. It should display: `Reset Code set`.
+
+You can now choose `Q` to quit the PIN-setup menu.
 
 ## Additional configuration on the Yubikey
 Additionally, you can configure some other parameters like preferred language, sex, name, and email address for the Yubikey.
-Just check out the help command in `gpg`.
+At a later stage in this tutorial, we will set the URL parameter.
+
+Just check out the help command in `gpg` and get yourself familiar with the options.
 
 ```zsh
 gpg/card> help
@@ -55,12 +89,14 @@ Enough of this. Let's start by generating the keys.
 % gpg --expert --full-gen-key
 ```
 
-  * Select option `8` (RSA)
-  * Disable encrypt and leave `sign` and `certify` enabled
-  * Set the key size to `4096`
-  * Set the expiration date
-  * Setup a UID
-  * Setup a passphrase 
+  * Select option `8` (RSA).
+  * Disable encrypt and leave `sign` and `certify` enabled.
+  * Select `Q` to continue with the next step.
+  * Set the key size to `4096`.
+  * Set the expiration date.
+  * Setup a UID by entering your `Real Name` and `Email address`. Optionally you can enter some `Comments`.
+  * Select `O` for Okay if everything is correct.
+  * Setup a passphrase.
 
 After this is done the primary key gets generated. Write down your `<keyID>` because you'll need it in the following steps.
 The outcome of the aforementioned steps should look something like this.
@@ -73,13 +109,20 @@ The outcome of the aforementioned steps should look something like this.
 
 ### Other UID's
 
-For the next step, we'll open `gpg` once more.
+For the next step, we'll open `gpg` once more only now with the specific goal to edit the key we've just generated.
+The <keyID> is displayed a few rules above. 
 
 ```zsh
 % gpg --expert --edit-key <keyID>`
 ```
 
-You can now add other UID's by typing in `adduid`. Make sure at the end you'll switch back to the primary key by using the following:
+You can now add other UID's by typing in `adduid`. 
+
+```zsh
+gpg> adduid
+```
+
+Make sure at the end you'll switch back to the primary key by using the following:
 
 ```zsh
 gpg> uid 1
@@ -94,9 +137,10 @@ We will now create the other subkeys and start with the encrypt key.
 ```zsh
 gpg> addkey
 ```
-  * Select option `6` (encrypt only)
-  * Set the key size to `4096`
-  * Set the expiration date
+  * Select option `6` (encrypt only).
+  * Set the key size to `4096`.
+  * Set the expiration date.
+  * Enter your passphrase. 
 
 #### Authenticate 
 Next is the authenticate key.
@@ -104,12 +148,17 @@ Next is the authenticate key.
 ```zsh
 gpg> addkey
 ```
-  * Select option `8` (RSA)
-  * Disable all and enable `authenticate`
-  * Set the key size to `4096`
-  * Set the expiration date
+  * Select option `8` (RSA).
+  * Disable all and enable `authenticate`.
+  * Select `Q` to continue with the next step.
+  * Set the key size to `4096`.
+  * Set the expiration date.
+  * Enter your passphrase. 
+
+:thumbsup: Great all subkeys are created.
 
 ### Set the trust level
+
 Now that the second key is generated we should set the trust level to ultimate.
 
 ```zsh
@@ -164,6 +213,12 @@ This can be done by importing your keys with the `import` option.
 
 ```
 
+If you didn't write down you <keyID> you can find it by using the `--list-keys` option.
+
+```zsh
+% gpg --list-keys
+```
+
 ## Write your keys to the Yubikey
 
 Now that this is done we can save the keys to the Yubikey by doing the following:
@@ -173,26 +228,28 @@ Now that this is done we can save the keys to the Yubikey by doing the following
 gpg> toggle
 gpg> keytocard
 ```
-  * Select option `1` (signature key)
-  * Enter your passphrase and the PIN
+  * Confirm you want to move the primary key.
+  * Select option `1` (signature key).
+  * Enter your passphrase and the Admin PIN.
 
 ```zsh
 gpg> key 1
 gpg> keytocard
 ```
-  * Select option `2` (encryption key)
-  * Enter your passphrase and the PIN
-  * Disable the first key
+  * Select option `2` (encryption key).
+  * Enter your passphrase and the PIN.
+  * Disable the first key.
 ```zsh
 gpg> key 1
 ```
-  * Enable the second key
+  * Enable the second key.
+
 ```zsh
 gpg> key 2
 gpg> keytocard
 ```
-  * Select option `3` (Authentication key)
-  * Enter your passphrase and the PIN
+  * Select option `3` (Authentication key).
+  * Enter your passphrase and the PIN.
   * Disable the second key and save.
 ```zsh
 gpg> key 2
@@ -212,9 +269,9 @@ However, if for some reason something went wrong with the stubs its good to have
 
 ## Publish your public key
 
-These days privacy has become very important. Much more if we compare it to 1997 when GnuPG (gpg) was introduced. Back in the days, and even now, there are public keyservers to which you can send your public key. However, there are some privacy concerns with these public keyservers and some nasty ways to attack them :thinking:. **Yakamo K** wrote a good blogpost about this which can be found [here](https://medium.com/@mdrahony/are-sks-keyservers-safe-do-we-need-them-7056b495101c).
+These days privacy has become very important. Much more if we compare it to 1997 when GnuPG (gpg) was introduced. Back in the days, and even now, there are public keyservers to which you can send your public key. However, there are some privacy concerns with these public keyservers and some nasty ways to attack them :thinking:. **Yakamo K** wrote a good blog post about this which can be found [here](https://medium.com/@mdrahony/are-sks-keyservers-safe-do-we-need-them-7056b495101c).
 
-In recent years an alternative was developed named [keybase.io](https://keybase.io). On this platform, you can publish your public key without publishing your personal email address and without losing control over your personal information. Because of this, I advise you to use keybase.io. You can even find me on there by clicking [here](https://keybase.io/ronaldvdmeer).
+In recent years an alternative was developed named [keybase.io](https://keybase.io). On this platform, you can publish your public key without publishing your email address and without losing control over your personal information. Because of this, I advise you to use keybase.io. You can even find me on there by clicking [here](https://keybase.io/ronaldvdmeer).
 
 ## Define the location of your public key on the Yubikey
 
@@ -223,10 +280,10 @@ Although it's optional you can specify the location of your public key on the Yu
 ```zsh
 > gpg --edit-card
 ```
-  * Type `admin` 
-  * Type `url`
-  * Enter the location of your public key
-  * Enter your Admin PIN
+  * Type `admin`.
+  * Type `url`.
+  * Enter the location of your public key.
+  * Enter your Admin PIN.
 
 You can now quit `gpg` once more and use the `fetch` command (see 'Fetch the public key') to import them on other machines.
 
@@ -256,7 +313,7 @@ This command looks at the URL parameter we defined earlier on the Yubikey and do
 
 ```zsh
 gpg> fetch
-gpg: requesting key from 'https://keybase.io/<YOURKEYBASID>pgp_keys.asc'
+gpg: requesting key from 'https://keybase.io/<YOURKEYBASID>/pgp_keys.asc'
 gpg: key XXXXXXXXXX: public key "<YOUR NAME> <XXX@XXX.com>" imported
 gpg: Total number processed: 1
 gpg:               imported: 1
@@ -283,7 +340,7 @@ You can use your keys on a Windows machine.
 ## macOS Configuration for SSH usage
 
 Now that your keys are stored on the Yubikey its time to link `gpg-agent` and `ssh-agent`.
-Create the files below and if needed adjust the path to `pinentry` if this differce on your machine.
+Create the files below and if needed adjust the path to `pinentry`.
 
 Because Apple decided to start using [zsh instead of bash](https://support.apple.com/en-us/HT208050) you'll see me using `.zprofile` instead of `.bash_profile`.
 If you're still using `bash` you can make the adjustments to the appropriate files.
@@ -328,3 +385,11 @@ If you encounter trouble check your server to see if the `sshd` configuration ac
 ## One more thing
 The signing of every [commit](https://github.com/RvMp/yubikey-ssh-macos-catalina/commits/master) is done with the Yubikey as well.
 If you want to know more about this visit the [Developers Blog](https://developers.yubico.com/PGP/Git_signing.html) on yubico.com. It's fairly simple, yet awesome! :smirk:
+
+# Updates
+
+**2019-11-21** 
+Tested this tutorial with the Yubikey 5 (NFC), rephrased some sentences, added an update section and improved markdown.
+
+**2019-11-19** 
+Added how to use the Yubikey and GPG keys on another Windows machine.
