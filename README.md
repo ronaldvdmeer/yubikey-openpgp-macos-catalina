@@ -13,10 +13,10 @@ Because we want this to work on our apple machine let's start with installing ho
 % /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
 ```
 
-Now that homebrew is installed let's use it to install gnupg2 and pinetry.
+Now that homebrew is installed let's use it to install gnupg2 and pinentry.
 
 ```zsh
-% brew install gnupg2 pinetry-mac
+% brew install gnupg2 pinentry-mac
 ```
 
 ## PIN Codes
